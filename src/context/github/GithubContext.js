@@ -16,6 +16,8 @@ export const GithubProvider = ({ children }) => {
     // set initial state for reducer
     const initialState = {
         users: [],
+        user: {},
+        repos: [],
         loading: false
     }
 
@@ -56,7 +58,7 @@ export const GithubProvider = ({ children }) => {
             },
         })
 
-        const {items} = await response.json()
+        const { items } = await response.json()
 
         dispatch({
             type: 'GET_USERS',
@@ -66,8 +68,36 @@ export const GithubProvider = ({ children }) => {
     }
 
 
+    // get a single  user and updating the state
+    const getUser = async (login) => {
+        setLoading()
+
+
+        const response = await fetch(`${GITHUB_URL}/users/${login}`, {
+            headers: {
+                Authorization: `token ${ACCESS_TOKEN}`,
+            },
+        })
+
+        if (response.status === 404) {
+            window.location = '/notfound'
+        } else {
+            const data = await response.json()
+
+            dispatch({
+                type: 'GET_USER',
+                payload: data,
+
+            })
+        }
+
+
+    }
+
+
+
     // clear users from user state
-    const clearUsers = ()=> {
+    const clearUsers = () => {
         dispatch({
             type: 'CLEAR_USERS'
         })
@@ -78,8 +108,10 @@ export const GithubProvider = ({ children }) => {
             value={{
                 users: state.users,
                 loading: state.loading,
+                user: state.user,
                 searchUsers,
-                clearUsers
+                clearUsers,
+                getUser
             }}
         >
             {children}
